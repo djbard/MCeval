@@ -7,3 +7,10 @@ Memcpy: 200ms.
 kernel: 4us. 
 This is obviously a very inefficient use of resources. 
 
+
+Next up: calculate chi2 of test gaussian params, compared to reference distribution. 
+---------------------
+Each thread evaluate chi2 of gaussian - data point, summed over 30*30 data points (note, all data is nonsense). 
+memcp: 130ms
+kernel :1.3ms. 
+still, obviously way inefficient. 
