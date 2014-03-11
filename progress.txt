@@ -1,0 +1,9 @@
+This is where I will keep track of the timing at the various stages. 
+
+5-min implementation
+---------------------
+Evaluates Gaussian on 80 threads. 
+Memcpy: 200ms. 
+kernel: 4us. 
+This is obviously a very inefficient use of resources. 
+
