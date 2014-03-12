@@ -33,4 +33,16 @@ kernel: 2.1ms
 --------------------
 does this scale? Trying 1000 calls to the function, assuming each walker step is independent. Basically, I'm running the thing 1000 times independently. 
 --------------------
-takes ~3.5 sec. If I comment out the kernel, takes ~1 sec, same if I also remove the cudamemcpy. If also comment out the cudamalloc, takes only 0.5 sec (just the host memory malloc 1000 times, that is). 
+takes ~3.5 sec. If I comment out the kernel, takes ~1 sec, same if I also remove the cudamemcpy. If also comment out the cudamalloc, takes only 0.5 sec (just the host memory malloc 1000 times, that is).  
+
+
+-------------------
+scale with # galaxies. Instead of one set of 30*30 pixel vector, I'll try multiplying that to mimic doing a bunch of galaxies in parallel. 
+-------------------
+1 gal: 3.4s	 (3.4 s/gal)
+10 gals: 3.2s    (0.32 s/gal)
+100 gals: 5.5s   (0.055 s/gal)
+1000 gals: 29.1s (0.029 s/gal) 
+10000 gals: 4.22.86 min = 262s (0.026 s/gal)
+Note that I'm still producing nonsense evaluations. I haven't checked very carefully that the output is producing reasonable numbers, but I think it's scaling as I'd expect. 
+That may be the next step, to try to make reasonable outputs from reasonable inputs. 

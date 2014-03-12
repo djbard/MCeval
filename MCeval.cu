@@ -7,6 +7,7 @@
 #include <unistd.h>
 
 
+#include "cuda_runtime.h"
 
 void checkCUDAerror(const char *msg);
 
@@ -20,7 +21,12 @@ __global__ void calc(float* a1, float* b1, float* c1,float* a2, float* b2, float
   // Need to calc the pearson chi2 : sum over data points of (model-data)^2/data
   // this will mean that x and data have the same range. 
   float chi2 = 0;
-  for(int i=0;i<ndata;i++){
+  // how to calc the indices over which we will iterate?
+  // only doing one block of 30x30 pixels. 
+  int whichGal = int(floorf(idx/80));
+  int start = 30*30*whichGal;
+  int stop = start+(30*30);
+  for(int i=start;i<stop;i++){
     // calc gaussian at this point
     float sumG=0;
     float xx = x[i];
@@ -58,19 +64,23 @@ if(argc>1)
 // how many walkers? They will be evaluated in parallel. 
 int nWalkers = 80;
 
+// how many gals shall I try to do at the same time? 
+int ngals = 10000;
 
 ////////////////////////////
 // now for the data. Assume it'll be a 30x30 pixel square.  
 // I put this outside the loop cos the data never changes. 
 
-int ndata = 30*30;
+int ndata = 30*30*ngals;
+printf("size of data: %d \n", ndata);
+
 size_t sizeneeded_data = ndata*sizeof(float);
 
 float *h_x = 0, *h_data = 0;
 h_x = (float*) malloc(sizeneeded_data);
 h_data = (float*) malloc(sizeneeded_data);
 for(int i=0;i<ndata;i++){
-h_x[i]=i;
+h_x[i]=1;
 h_data[i]=1;
 }
 
@@ -92,7 +102,7 @@ checkCUDAerror("data memcpy");
 for(int hh=0;hh<1000;hh++){
 
 // set up the walkers CPU memory. 
-size_t sizeneeded = nWalkers*sizeof(float);
+size_t sizeneeded = nWalkers*ngals*sizeof(float);
 float *h_a1 = 0, *h_b1=0, *h_c1=0;
 float *h_a2 = 0, *h_b2=0, *h_c2=0;
 float *h_a3 = 0, *h_b3=0, *h_c3=0;
@@ -172,7 +182,7 @@ cudaMalloc(&d_c6, sizeneeded);
 
 ///////////////////////////////
 // assign the output memory. One number returned for each walker. 
-size_t sizeneeded_out = nWalkers*sizeof(float);
+size_t sizeneeded_out = nWalkers*ngals*sizeof(float);
 float *h_LH = 0; 
 float *d_LH;
 h_LH = (float*) malloc(sizeneeded_out);
@@ -208,8 +218,8 @@ checkCUDAerror("memcpy");
 // set up kernel params. 
 // First: 80 walkers, each will eval one gaussian. 
 int threadsPerBlock = 512; // max possible. Don't care much about mem access yet. 
-int blocksPerGrid = int(ceil(nWalkers / float(threadsPerBlock)));
-    //printf(" theads per block: %d and blocks per grid: %d for a total of: %d\n", threadsPerBlock, blocksPerGrid, threadsPerBlock*blocksPerGrid);
+int blocksPerGrid = int(ceil(nWalkers*ngals / float(threadsPerBlock)));
+if(hh==500)printf(" theads per block: %d and blocks per grid: %d for a total of: %d\n", threadsPerBlock, blocksPerGrid, threadsPerBlock*blocksPerGrid);
 
 
 // run it! 
@@ -223,11 +233,11 @@ checkCUDAerror("kernel");
 cudaMemcpy(h_LH, d_LH, sizeneeded_out, cudaMemcpyDeviceToHost);
 
 // print it out...
-if(hh==500){
-for(int i=0;i<nWalkers;i++){
-  printf("LH is: %f  ", h_LH[i]);
-}
-}
+//if(hh%9999==0){
+//for(int i=0;i<nWalkers*ngals;i++){
+//  printf("LH is: %f  ", h_LH[i]);
+//}
+//}
 
 
 //printf("\n");
@@ -279,6 +289,7 @@ free(h_x);
 free(h_data);
 cudaFree(d_x);
 cudaFree(d_data);
+printf("\n");
 }
 
 
