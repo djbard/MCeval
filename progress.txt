@@ -43,6 +43,15 @@ scale with # galaxies. Instead of one set of 30*30 pixel vector, I'll try multip
 10 gals: 3.2s    (0.32 s/gal)
 100 gals: 5.5s   (0.055 s/gal)
 1000 gals: 29.1s (0.029 s/gal) 
-10000 gals: 4.22.86 min = 262s (0.026 s/gal)
+10000 gals: 262s (0.026 s/gal)
 Note that I'm still producing nonsense evaluations. I haven't checked very carefully that the output is producing reasonable numbers, but I think it's scaling as I'd expect. 
 That may be the next step, to try to make reasonable outputs from reasonable inputs. 
+
+-----------------
+swapping  __expf for expf is pretty nice! 
+----------------
+1 gal: 2.4s      (2.4s/gal)
+10 gals: 2.6s	 (0.26s/gal)
+100 gals: 4.0s	 (0.04s/gal)
+1000 gals: 19.5s (0.0195s/gal)
+10000 gals: 175s (0.0175s/gal)

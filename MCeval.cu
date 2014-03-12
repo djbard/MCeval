@@ -30,12 +30,12 @@ __global__ void calc(float* a1, float* b1, float* c1,float* a2, float* b2, float
     // calc gaussian at this point
     float sumG=0;
     float xx = x[i];
-    sumG += a1[idx]*expf( -1*(xx-b1[idx]*b1[idx])/(2*c1[idx]*c1[idx]) );
-    sumG += a2[idx]*expf( -1*(xx-b2[idx]*b2[idx])/(2*c2[idx]*c2[idx]) );
-    sumG += a3[idx]*expf( -1*(xx-b3[idx]*b3[idx])/(2*c3[idx]*c3[idx]) );
-    sumG += a4[idx]*expf( -1*(xx-b4[idx]*b4[idx])/(2*c4[idx]*c4[idx]) );
-    sumG += a5[idx]*expf( -1*(xx-b5[idx]*b5[idx])/(2*c5[idx]*c5[idx]) );
-    sumG += a6[idx]*expf( -1*(xx-b6[idx]*b6[idx])/(2*c6[idx]*c6[idx]) );
+    sumG += a1[idx]*__expf( -1*(xx-b1[idx]*b1[idx])/(2*c1[idx]*c1[idx]) );
+    sumG += a2[idx]*__expf( -1*(xx-b2[idx]*b2[idx])/(2*c2[idx]*c2[idx]) );
+    sumG += a3[idx]*__expf( -1*(xx-b3[idx]*b3[idx])/(2*c3[idx]*c3[idx]) );
+    sumG += a4[idx]*__expf( -1*(xx-b4[idx]*b4[idx])/(2*c4[idx]*c4[idx]) );
+    sumG += a5[idx]*__expf( -1*(xx-b5[idx]*b5[idx])/(2*c5[idx]*c5[idx]) );
+    sumG += a6[idx]*__expf( -1*(xx-b6[idx]*b6[idx])/(2*c6[idx]*c6[idx]) );
 
     chi2+=( (data[i]-sumG)*(data[i]-sumG))/sumG;
 
