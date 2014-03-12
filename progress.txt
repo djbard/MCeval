@@ -1,16 +1,31 @@
 This is where I will keep track of the timing at the various stages. 
 
+---------------------
 5-min implementation
 ---------------------
 Evaluates Gaussian on 80 threads. 
-Memcpy: 200ms. 
+cudamalloc: 200ms. 
 kernel: 4us. 
 This is obviously a very inefficient use of resources. 
 
 
+---------------------
 Next up: calculate chi2 of test gaussian params, compared to reference distribution. 
 ---------------------
 Each thread evaluate chi2 of gaussian - data point, summed over 30*30 data points (note, all data is nonsense). 
-memcp: 130ms
+cudamalloc: 130ms
 kernel :1.3ms. 
 still, obviously way inefficient. 
+
+
+---------------------
+Now, let's do 6 gaussians. The aim here is to fit multiple gaussians to one galaxy shape, so this will be a sum of 6 gaussians with params for each specified by the walkers. 
+---------------------
+Dumbly copying 6 sets of gaussian param vectors over the the GPU. 
+This fails with  'too many resources requested for launch.'. I expect I've exceeded the register memory. If I comment out 2 of the gaussians, it will run. 
+Ah! I need to use less than 1024 threads/block. The problem is that register memory is assigned per block. 512 threads/block. This might get tricky if I want to use shared memory later on. 
+cudamalloc: 116ms
+memcpy: 20us
+kernel: 2.1ms
+
+
