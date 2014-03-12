@@ -59,6 +59,38 @@ if(argc>1)
 int nWalkers = 80;
 
 
+////////////////////////////
+// now for the data. Assume it'll be a 30x30 pixel square.  
+// I put this outside the loop cos the data never changes. 
+
+int ndata = 30*30;
+size_t sizeneeded_data = ndata*sizeof(float);
+
+float *h_x = 0, *h_data = 0;
+h_x = (float*) malloc(sizeneeded_data);
+h_data = (float*) malloc(sizeneeded_data);
+for(int i=0;i<ndata;i++){
+h_x[i]=i;
+h_data[i]=1;
+}
+
+
+// data GPU memory
+float *d_x, *d_data;
+cudaMalloc(&d_x, sizeneeded_data);
+cudaMalloc(&d_data, sizeneeded_data);
+
+
+cudaMemcpy(d_data, h_data, sizeneeded_data, cudaMemcpyHostToDevice);
+cudaMemcpy(d_x, h_x, sizeneeded_data, cudaMemcpyHostToDevice);
+
+
+checkCUDAerror("data memcpy");
+//////////////////test////////////////////
+// try looping over 1000 times. I want to see how long this takes, in this dumb implementation. 
+////////////////////////////////////////
+for(int hh=0;hh<1000;hh++){
+
 // set up the walkers CPU memory. 
 size_t sizeneeded = nWalkers*sizeof(float);
 float *h_a1 = 0, *h_b1=0, *h_c1=0;
@@ -137,25 +169,6 @@ cudaMalloc(&d_c6, sizeneeded);
 
 
 
-////////////////////////////
-// now for the data. Assume it'll be a 30x30 pixel square.  
-int ndata = 30*30;
-size_t sizeneeded_data = ndata*sizeof(float);
-
-float *h_x = 0, *h_data = 0;
-h_x = (float*) malloc(sizeneeded_data);
-h_data = (float*) malloc(sizeneeded_data);
-for(int i=0;i<ndata;i++){
-h_x[i]=i;
-h_data[i]=1;
-}
-
-
-// data GPU memory
-float *d_x, *d_data;
-cudaMalloc(&d_x, sizeneeded_data);
-cudaMalloc(&d_data, sizeneeded_data);
-
 
 ///////////////////////////////
 // assign the output memory. One number returned for each walker. 
@@ -186,19 +199,17 @@ cudaMemcpy(d_c5, h_c5, sizeneeded, cudaMemcpyHostToDevice);
 cudaMemcpy(d_a6, h_a6, sizeneeded, cudaMemcpyHostToDevice);
 cudaMemcpy(d_b6, h_b6, sizeneeded, cudaMemcpyHostToDevice);
 cudaMemcpy(d_c6, h_c6, sizeneeded, cudaMemcpyHostToDevice);
-cudaMemcpy(d_x, h_x, sizeneeded_data, cudaMemcpyHostToDevice);
-cudaMemcpy(d_data, h_data, sizeneeded_data, cudaMemcpyHostToDevice);
 cudaMemcpy(d_LH, h_LH, sizeneeded_out, cudaMemcpyHostToDevice);
 
 checkCUDAerror("memcpy");
-    
+   
 
 
 // set up kernel params. 
 // First: 80 walkers, each will eval one gaussian. 
 int threadsPerBlock = 512; // max possible. Don't care much about mem access yet. 
 int blocksPerGrid = int(ceil(nWalkers / float(threadsPerBlock)));
-    printf(" theads per block: %d and blocks per grid: %d for a total of: %d\n", threadsPerBlock, blocksPerGrid, threadsPerBlock*blocksPerGrid);
+    //printf(" theads per block: %d and blocks per grid: %d for a total of: %d\n", threadsPerBlock, blocksPerGrid, threadsPerBlock*blocksPerGrid);
 
 
 // run it! 
@@ -212,12 +223,62 @@ checkCUDAerror("kernel");
 cudaMemcpy(h_LH, d_LH, sizeneeded_out, cudaMemcpyDeviceToHost);
 
 // print it out...
+if(hh==500){
 for(int i=0;i<nWalkers;i++){
   printf("LH is: %f  ", h_LH[i]);
 }
+}
 
-printf("\n");
 
+//printf("\n");
+
+//////////////
+// now free upp all the histo memory, both on CPU and GPU. Otherwise I'll fill up the device memory pretty fast! 
+free(h_a1); 
+free(h_b1);
+free(h_c1);
+free(h_a2);
+free(h_b2);
+free(h_c2);
+free(h_a3); 
+free(h_b3);
+free(h_c3);
+free(h_a4);
+free(h_b4);
+free(h_c4);
+free(h_a5);
+free(h_b5);
+free(h_c5);
+free(h_a6);
+free(h_b6);
+free(h_c6);
+cudaFree(d_a1);
+cudaFree(d_b1);
+cudaFree(d_c1);
+cudaFree(d_a2);
+cudaFree(d_b2);
+cudaFree(d_c2);
+cudaFree(d_a3);
+cudaFree(d_b3);
+cudaFree(d_c3);
+cudaFree(d_a4);
+cudaFree(d_b4);
+cudaFree(d_c4);
+cudaFree(d_a5);
+cudaFree(d_b5);
+cudaFree(d_c5);
+cudaFree(d_a6);
+cudaFree(d_b6);
+cudaFree(d_c6);
+
+
+}// end loop over 1000 walker updates. 
+
+
+free(h_x);
+free(h_data);
+cudaFree(d_x);
+cudaFree(d_data);
 }
 
 

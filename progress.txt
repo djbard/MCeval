@@ -29,3 +29,8 @@ memcpy: 20us
 kernel: 2.1ms
 
 
+
+--------------------
+does this scale? Trying 1000 calls to the function, assuming each walker step is independent. Basically, I'm running the thing 1000 times independently. 
+--------------------
+takes ~3.5 sec. If I comment out the kernel, takes ~1 sec, same if I also remove the cudamemcpy. If also comment out the cudamalloc, takes only 0.5 sec (just the host memory malloc 1000 times, that is). 
